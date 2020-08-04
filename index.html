@@ -1,0 +1,179 @@
+<html>
+    <head>
+        <title>mdArea</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="pragma" content="no-cache">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <!-- 强制让文档与设备的宽度保持1：1 -->
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+        <!-- 网页宽度默认等于屏幕宽度（width=device-width），
+        初始缩放比例（initial-scale=1）为1.0，即网页初始大小占屏幕面积的100%。 -->
+        <!-- 删除默认的苹果工具栏和菜单栏 -->
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <!-- 在web app应用下状态条（屏幕顶部条）的颜色 -->
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <!-- 禁止了把数字转化为拨号链接 -->
+        <meta name="format-detection" content="telephone=no">
+        <!-- 浏览网站时的小图标 -->
+        <!-- <link rel="shortcut icon" href="favicon.ico" type="/image/x-icon">   -->
+        <!-- 添加至主屏时的图片 -->
+        <!-- <link rel="apple-touch-icon-precomposed" href="touch-icon.png"> -->
+        <!-- 渲染模式 -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+        <link rel="styleSheet" href="https://cdn.sspai.com/MWeb.css" />
+        <!-- <link rel="styleSheet" href="./css/github-markdown.css" /> -->
+        <script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+        <script src="./js/vue.min.js"></script>
+        <script src="./js/marked.js"></script>
+        <script>
+            // var converter = new showdown.Converter({tables: true,extensions: ['prettify']});
+            // converter.setOption({highlight: function (code) {
+            //     console.log(hljs.highlightAuto,code);
+            //     return hljs.highlightAuto(code).value;
+            // }});
+            // converter.makeHtml('@glyphicon-envelope');
+            // converter.makeHtml('@fa-home');
+            // // var defaultOptions = showdown.getDefaultOptions();
+            marked.setOptions({
+                highlight: function(code) {
+                    return hljs.highlightAuto(code).value;
+                },
+                pedantic: false,
+                gfm: true,
+                tables: true,
+                breaks: false,
+                sanitize: false,
+                smartLists: true,
+                smartypants: false,
+                xhtml: false
+            })
+            function mdSwitch() {
+                that = document.querySelector('#md-area');
+                text = that.innerText;
+                // html = converter.makeHtml(text);
+                html = marked(text);
+                document.getElementById("preView").innerHTML = html;
+                document.getElementById("mdReader").innerHTML = html;
+            }
+            function mdSave(){
+                document.getElementById('md-area').innerText = document.getElementById('md-area').innerText
+            }
+            window.onkeydown = function (event) {
+                if (event.ctrlKey && event.keyCode == 191) {
+                    // Ctrl + / 
+                    vue.MainToggle();
+                }
+                if (event.ctrlKey && event.keyCode == 83) {
+                    // ctrl + s
+                    mdSave()
+                    if(event && event.stopPropagation){
+                        event.stopPropagation();  //  w3c 标准
+                        event.preventDefault();
+                    }else{
+                        event.cancelBubble = true;  // ie 678  IE浏览器
+                    }
+                }
+            };
+        </script>
+        <style>
+            html,body{width: 100%; height: 100%; padding: 0; margin: 0; min-width: 100%; color:#ccc !important}
+            tr{background: #0005;}
+            pre{background: #0009;}
+            body{background: #000c; }
+            .bg{background: url('editor6.jpg') no-repeat; background-size: cover;width: 100%; height: 100%; position: absolute; left: 0; right: 0; top: 0; bottom: 0;}
+            .mdReader,.mdEditor{position: relative; width: 100%; margin: 0 auto; height: 100%; }
+            .mdArea{background: #0005;width: calc(50% - 12px); height:800px; float: left; padding: 6px; height: calc(100% - 12px); margin: 0; box-sizing: 0 0 0 -3px #000; outline: none;}
+            .mdReader{display: -webkit-flex;width: 100%;height: 100%;}
+            #floder{  min-width: 180px;  max-width: 360px;  height: 100%;  display: -webkit-flex; display: flex; overflow: hidden; position: relative;}
+            .floder{width: 180px;-webkit-flex-grow: 1;flex-grow: 1; background: #0005; position: relative; left: 0;}
+            .floder ul li{list-style: none; height: 38px; line-height: 19px; cursor: pointer; }
+            .floder ul li span{text-overflow: ellipsis; overflow: hidden; display: block;}
+            .floder ul li.hover{ list-style-type: disc;}
+            .floder ul:hover li{list-style-type: none;}
+            .floder ul li:hover{ list-style-type: disc;}
+            .floder._floder{position: absolute;}
+            .floder._floder._parent{left: -180px; top: 0;}
+            .floder._floder._son{left: 360px; top: 0;}
+            .floder.son{background: #0004;}
+            #mdReader{width: 1px;-webkit-flex-grow: 1;flex-grow: 1; background: #0003; padding: 8px;}
+        </style>
+    </head>
+    <body>
+        <div class="bg"></div>
+        <div id="app">
+            <div class="mdEditor" v-show="tab">
+                <div id="md-area" class="mdArea" onkeypress="mdSwitch()" onkeyup="mdSwitch()" contenteditable=true>{{txt}}</div>
+                <div id="preView" class="mdArea"></div>
+            </div>
+            <div class="mdReader" v-show="!tab">
+                <div id="floder">
+                    <div class="floder parent"><ul><li v-for="(v,k) in parent" :key="k"  :class="{'hover':hover[0]!=null && v == hover[0] }" @click="NavClick(0,k)"><span :title="v">{{v}}</span></li></ul></div>
+                    <div class="floder son" v-show="son.length > 0"><ul><li v-for="(v,k) in son" :key="k" :class="{'hover':hover[1]!=null && v == hover[1] }" @click="NavClick(1,k)"><span :title="v">{{v}}</span></li></ul></div>
+                    <div class="floder _floder _parent" v-show="pre_parent.length > 0"><ul><li v-for="(v,k) in pre_parent" :key="k"><span :title="v">{{v}}</span></li></ul></div>
+                    <div class="floder _floder _son" v-show="pre_son.length > 0"><ul><li v-for="(v,k) in pre_son" :key="k"><span :title="v">{{v}}</span></li></ul></div>
+                </div>
+                <div id="mdReader">
+                    {{txt}}
+                </div>
+            </div>
+        </div>
+    </body>
+    <script>
+        var vue = new Vue({
+            el:"#app",
+            data:{
+                name:"mdArea",
+                txt:'# howdy',
+                tab:'false', /*@true viewer @false editor */
+                floder:{}, // 所有目录内容，undefined的时候会请求接口
+                parent:[2,322222222222222222222222,4], // 当前展示的父级目录
+                son:[0,1,2], // 当前展示的子级目录
+                pre_parent:[3,4,5,6], // 向右切换的父级目录内容
+                pre_son:[-1,0,1], // 用于向右切换的子级目录内容
+                hover:[2,1], // 当前选中的目录/文件
+                floder_level:0, // 目录级别，用于左右切换
+            },
+            methods:{
+                NavClick(channel,key){
+                    switch (channel){
+                        case 0:
+                            this.hover[0] = this.parent[key];
+                            this.hover[1] = null;
+                            this.$forceUpdate();
+                        break;
+                        case 1:
+                            this.parent = this.son;
+                            this.son = [];
+                            this.hover[0] = this.parent[key];
+                            this.hover[1] = null;
+                            this.$forceUpdate();
+                        break;
+                    }
+                },
+                MainToggle(){
+                    this.tab = !this.tab;
+                },
+                createFloader(pid){
+                    
+                },
+                loadFloader(id){
+
+                },
+                addMd(){
+
+                },
+                delMd(){
+
+                },
+                delFloader(){
+                    
+                }
+            },
+            created(){
+                this.$nextTick().then(function () {
+                    mdSwitch()                    
+                })
+            }
+        })
+    </script>
+</html>
