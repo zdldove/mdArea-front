@@ -107,10 +107,14 @@
             </div>
             <div class="mdReader" v-show="!tab">
                 <div id="floder">
-                    <div class="floder parent"><ul><li v-for="(v,k) in parent" :key="k"  :class="{'hover':hover[0]!=null && v == hover[0] }" @click="NavClick(0,k)"><span :title="v">{{v}}</span></li></ul></div>
-                    <div class="floder son" v-show="son.length > 0"><ul><li v-for="(v,k) in son" :key="k" :class="{'hover':hover[1]!=null && v == hover[1] }" @click="NavClick(1,k)"><span :title="v">{{v}}</span></li></ul></div>
-                    <div class="floder _floder _parent" v-show="pre_parent.length > 0"><ul><li v-for="(v,k) in pre_parent" :key="k"><span :title="v">{{v}}</span></li></ul></div>
-                    <div class="floder _floder _son" v-show="pre_son.length > 0"><ul><li v-for="(v,k) in pre_son" :key="k"><span :title="v">{{v}}</span></li></ul></div>
+                    <ul class="scrollBtn">
+                        <li class="btn-l">&lt;</li>
+                        <li class="btn-r">&gt;</li>
+                    </ul>
+                    <div class="floder parent"><ul><li v-for="(v,k) in parent" :key="k"  :class="{'hover':hover[floder_level]!=null && v.id == hover[floder_level] }" @click="NavClick(0,k)"><span :title="v.title">{{v.title}}</span></li><li @click="createHandler(0)">add</li></ul></div>
+                    <div class="floder son" v-show="parent.length > 0 && hover.length > 0"><ul><li v-for="(v,k) in son" :key="k" :class="{'hover':hover[floder_level]!=null && v.id == hover[floder_level] }" @click="NavClick(1,k)"><span :title="v.title">{{v.title}}</span></li><li @click="createHandler(1)">add</li></ul></div>
+                    <div class="floder _floder _parent" v-show="pre_parent.length > 0"><ul><li v-for="(v,k) in pre_parent" :key="k"><span :title="v.title">{{v.title}}</span></li></ul></div>
+                    <div class="floder _floder _son" v-show="pre_son.length > 0"><ul><li v-for="(v,k) in pre_son" :key="k"><span :title="v.title">{{v.title}}</span></li></ul></div>
                 </div>
                 <div id="mdReader">
                     {{txt}}
@@ -119,39 +123,115 @@
         </div>
     </body>
     <script>
+        var mdList = [
+            // {id:2,title:'333',dir:0,pid:0},
+            // {id:3,title:'444',dir:0,pid:0},
+            // {id:4,title:'555',dir:0,pid:0},
+            // {id:5,title:'666',dir:1,pid:0},
+            // {id:6,title:'777',dir:0,pid:0},
+            // {id:7,title:'aaa1',dir:1,pid:2},
+            // {id:8,title:'aaa2',dir:0,pid:2},
+            // {id:9,title:'aaa3',dir:0,pid:2},
+            // {id:10,title:'aaa4',dir:1,pid:4},
+            // {id:11,title:'aaa5',dir:1,pid:4},
+        ]
+        for(var i = 0; i< 1000; i++){
+            let dir = parseInt(Math.random()*2);
+            mdList.push({id:i,title:String.fromCharCode(i)+String.fromCharCode(i**i)+String.fromCharCode(i+i)+i+dir,dir:dir,pid:parseInt(i - (Math.random() * i))},)
+        }
         var vue = new Vue({
             el:"#app",
             data:{
                 name:"mdArea",
                 txt:'# howdy',
-                tab:'false', /*@true viewer @false editor */
+                tab:false, /*@true viewer @false editor */
                 floder:{}, // 所有目录内容，undefined的时候会请求接口
-                parent:[2,322222222222222222222222,4], // 当前展示的父级目录
-                son:[0,1,2], // 当前展示的子级目录
-                pre_parent:[3,4,5,6], // 向右切换的父级目录内容
-                pre_son:[-1,0,1], // 用于向右切换的子级目录内容
-                hover:[2,1], // 当前选中的目录/文件
+                parent:[{id:1,title:'2',dir:1},{id:2,title:'3222',dir:1},{id:3,title:'4443',dir:0}], // 当前展示的父级目录
+                son:[{id:4,title:'5',dir:1},{id:5,title:'7888',dir:1},{id:6,title:'9998',dir:0}], // 当前展示的子级目录
+                pre_parent:[], // 向右切换的父级目录内容
+                pre_son:[], // 用于向右切换的子级目录内容
+                hover:[], // 当前选中的目录/文件
+                historyl:[],
+                historyr:[],
                 floder_level:0, // 目录级别，用于左右切换
             },
             methods:{
+                createHandler(channel){
+                    switch(channel){
+                        case 0:
+                            pid = this.hover[this.hover.length - 2];
+                            break;
+                        case 1:
+                            pid = this.hover[this.hover.length - 1];
+                            break;
+                    }
+                },
                 NavClick(channel,key){
                     switch (channel){
                         case 0:
-                            this.hover[0] = this.parent[key];
-                            this.hover[1] = null;
+                            if(0 == this.parent[key].dir){
+                                this.getMdInfo(this.parent[key].id,x=>{
+                                    this.txt = x
+                                    this.$forceUpdate();
+                                    this.$nextTick(function(){
+                                        mdSwitch();
+                                    })
+                                });
+                                return true;
+                            }
+                            // this.hover[0] = this.parent[key];
+                            // this.hover[1] = null;
+                            this.hover[this.hover.length?this.hover.length-1:0] = this.parent[key].id;
+                            this.son = this.getDirNavList(this.parent[key].id)
                             this.$forceUpdate();
                         break;
                         case 1:
+                            if(0 == this.parent[key].dir){
+                                this.getMdInfo(this.son[key].id,x=>{
+                                    this.txt = x
+                                    this.$forceUpdate();
+                                    this.$nextTick(function(){
+                                        mdSwitch();
+                                    })
+                                });
+                                return true;
+                            }
+                            this.historyl.push(this.parent)
                             this.parent = this.son;
                             this.son = [];
-                            this.hover[0] = this.parent[key];
-                            this.hover[1] = null;
+                            this.hover.push(this.parent[key].id)
+                            this.son = this.getDirNavList(this.parent[key].id)
+                            console.log(this.historyl);
                             this.$forceUpdate();
                         break;
                     }
+                    console.log(this.hover)
                 },
                 MainToggle(){
                     this.tab = !this.tab;
+                },
+                getDirNavList(pid){
+                    let res = []
+                    mdList.forEach(element => {
+                        if(pid == element.pid){
+                            res.push(element);
+                        }
+                    });
+                    return(res)
+                },
+                getMdInfo(id,fn){
+                    let res = mdList.find(function(a){
+                        if(a.id == id)return a;
+                    });
+                    fn(`
+# 本文章id为：${id}
+
+json格式为：\n
+\`\`\`
+${JSON.stringify(res,null,4)}
+\`\`\`
+                    
+`)
                 },
                 createFloader(pid){
                     
@@ -167,9 +247,16 @@
                 },
                 delFloader(){
                     
+                },
+                initDirNav(){
+                    let res = this.getDirNavList(0);
+                    this.parent = res;
+                    this.son = [];
+                    this.hover = [];
                 }
             },
             created(){
+                this.initDirNav()
                 this.$nextTick().then(function () {
                     mdSwitch()                    
                 })
