@@ -1,11 +1,6 @@
-// var converter = new showdown.Converter({tables: true,extensions: ['prettify']});
-// converter.setOption({highlight: function (code) {
-//     console.log(hljs.highlightAuto,code);
-//     return hljs.highlightAuto(code).value;
-// }});
-// converter.makeHtml('@glyphicon-envelope');
-// converter.makeHtml('@fa-home');
-// // var defaultOptions = showdown.getDefaultOptions();
+// const { cyanBright } = require("ansi-styles");
+// const { domain } = require("process");
+
 marked.setOptions({
     highlight: function(code) {
         return hljs.highlightAuto(code).value;
@@ -76,29 +71,37 @@ var vue = new Vue({
         hover:[], // 当前选中的目录/文件
         historyl:[],
         historyr:[],
-        floder_level:0, // 目录级别，用于左右切换
+        hoverl:[],
+        hoverr:[],
+        file:false, // 目录级别，用于左右切换
+        navScrollTimer:null, // 导航滚动计时器
+        navLeft:0,
     },
     methods:{
-        createHandler(channel){
-            switch(channel){
-                case 0:
-                    pid = this.hover[this.hover.length - 2];
-                    break;
-                case 1:
-                    pid = this.hover[this.hover.length - 1];
-                    break;
+        navOn(channel,nav ,res = ['hover']){
+            if(this.file === nav.id && 0 == nav.dir )return `${res[0]} ${res[1]}`;
+            if(channel == 1 && this.hover[this.hover.length - 2]!=null && this.hover[this.hover.length - 2] == nav.id)return `${res[0]} ${res[1]}`;
+            if(channel == 1 && this.hoverr.length && nav.id == this.hoverr[this.hoverr.length - 1])return `${res[0]} ${res[1]}`;
+            if(channel == 0 && this.hover[this.hover.length - 1]!=null && nav.id == this.hover[this.hover.length - 1]){
+                return `${res[0]} ${res[1]}`;
             }
+            return res[1];
         },
         NavClick(channel,key){
+            this.hoverr = [];
             switch (channel){
                 case 0:
                     if(0 == this.parent[key].dir){
                         this.getMdInfo(this.parent[key].id,x=>{
                             this.txt = x
                             this.$forceUpdate();
+                            this.file = this.parent[key].id
                             if(this.historyl.length){
                                 this.son = this.parent;
                                 this.parent = this.historyl.pop();
+                                this.hover.pop();
+                            }else{
+                                this.son = [];
                                 this.hover.pop();
                             }
                             this.$nextTick(function(){
@@ -107,8 +110,6 @@ var vue = new Vue({
                         });
                         return true;
                     }
-                    // this.hover[0] = this.parent[key];
-                    // this.hover[1] = null;
                     this.hover[this.hover.length?this.hover.length-1:0] = this.parent[key].id;
                     this.son = this.getDirNavList(this.parent[key].id)
                     this.$forceUpdate();
@@ -117,8 +118,10 @@ var vue = new Vue({
                     if(0 == this.son[key].dir){
                         this.getMdInfo(this.son[key].id,x=>{
                             this.txt = x
+                            this.file = this.son[key].id
                             this.$forceUpdate();
                             this.$nextTick(function(){
+                                file = this.son[key].id;
                                 mdSwitch();
                             })
                         });
@@ -129,11 +132,81 @@ var vue = new Vue({
                     this.son = [];
                     this.hover.push(this.parent[key].id)
                     this.son = this.getDirNavList(this.parent[key].id)
-                    console.log(this.historyl);
                     this.$forceUpdate();
                 break;
             }
-            console.log(this.hover)
+            this.hoverl = this.hover;
+        },
+        createHandler(channel){
+            switch(channel){
+                case 0:
+                    pid = this.hover[this.hover.length - 2] || 0;
+                    break;
+                case 1:
+                    pid = this.hover[this.hover.length - 1];
+                    break;
+            }
+        },
+        navMove(diff){
+            this.navLeft+=diff;
+            document.getElementById('floder').style.transform = `translate3d(${this.navLeft}px, 0, 0)`
+        },
+        navScrollAnimate(left,callback,speed = 5){
+            var left = this.navLeft + left;
+            if(this.navLeft > left){
+                this.navScrollTimer = setInterval(function(){
+                    if(this.navLeft <= left){
+                        clearInterval(this.navScrollTimer);
+                        callback();
+                        return true;
+                    }
+                    this.navMove(-speed);
+                }.bind(this))
+            }else{
+                this.navScrollTimer = setInterval(function(){
+                    if(this.navLeft >= left){
+                        clearInterval(this.navScrollTimer);
+                        callback();
+                        return true;
+                    }
+                    this.navMove(speed);
+                }.bind(this))
+            }
+            
+        },
+        navScroll(left,destory = false){
+            document.getElementById('floder').className =' onScrolling';
+            if(left){
+                this.historyr.push( this.son )
+                this.pre_parent = this.historyl.pop();
+                this.navScrollAnimate(180,function(){
+                    this.son = this.parent
+                    this.parent = this.pre_parent;
+                    this.navLeft = 0;
+                    this.navMove(0);
+                    this.hoverr.push(this.hoverl.pop());
+                    this.hover = this.hoverl;
+                    document.getElementById('floder').className =' ';
+                }.bind(this))
+                if(destory){
+                    this.historyr = []
+                }
+            }else{
+                this.historyl.push( this.parent )
+                this.pre_son = this.historyr.pop();
+                this.navScrollAnimate(-180,function(){
+                    this.parent = this.son;
+                    this.son = this.pre_son
+                    this.navLeft = 0;
+                    this.navMove(0);
+                    this.hoverl.push(this.hoverr.pop());
+                    this.hover = this.hoverl;
+                    document.getElementById('floder').className =' ';
+                }.bind(this))
+                if(destory){
+                    this.historyl = []
+                }
+            }
         },
         MainToggle(){
             this.tab = !this.tab;
@@ -158,7 +231,17 @@ json格式为：\n
 \`\`\`
 ${JSON.stringify(res,null,4)}
 \`\`\`
-            
+
+hey,it's dove.
+
+so, who are you?
+
+Is that you an old friend of mine?
+
+there is it, my new note.
+
+good day.
+
 `)
         },
         createFloader(pid){

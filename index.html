@@ -24,8 +24,9 @@
             
         </style>
         <!-- <link rel="styleSheet" href="https://cdn.sspai.com/MWeb.css" /> -->
-        <link rel="styleSheet" href="./css/mdArea.css" />
+        <link rel="stylesheet" href="./font/iconfont.css">
         <link rel="styleSheet" href="./css/MWeb.css" />
+        <link rel="styleSheet" href="./css/mdArea.css" />
         <!-- <link rel="styleSheet" href="./css/github-markdown.css" /> -->
     </head>
     <body>
@@ -36,15 +37,53 @@
                 <div id="preView" class="mdArea"></div>
             </div>
             <div class="mdReader" v-show="!tab">
-                <div id="floder">
-                    <ul class="scrollBtn">
-                        <li class="btn-l">&lt;</li>
-                        <li class="btn-r">&gt;</li>
-                    </ul>
-                    <div class="floder parent"><ul><li v-for="(v,k) in parent" :key="k"  :class="{'hover':hover[floder_level]!=null && v.id == hover[floder_level] }" @click="NavClick(0,k)"><span :title="v.title">{{v.title}}</span></li><li @click="createHandler(0)">add</li></ul></div>
-                    <div class="floder son" v-show="parent.length > 0 && hover.length > 0"><ul><li v-for="(v,k) in son" :key="k" :class="{'hover':hover[floder_level]!=null && v.id == hover[floder_level] }" @click="NavClick(1,k)"><span :title="v.title">{{v.title}}</span></li><li @click="createHandler(1)">add</li></ul></div>
-                    <div class="floder _floder _parent" v-show="pre_parent.length > 0"><ul><li v-for="(v,k) in pre_parent" :key="k"><span :title="v.title">{{v.title}}</span></li></ul></div>
-                    <div class="floder _floder _son" v-show="pre_son.length > 0"><ul><li v-for="(v,k) in pre_son" :key="k"><span :title="v.title">{{v.title}}</span></li></ul></div>
+                <div id="nav">
+                    <div id="floder">
+                        <div class="floder _floder _parent" v-show="pre_parent.length > 0">
+                            <ul>
+                                <li v-for="(v,k) in pre_parent" :key="k">
+                                    <span :title="v.title">{{v.title}}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="floder parent">
+                            <ul>
+                                <li 
+                                    v-for="(v,k) in parent" 
+                                    :key="k"  
+                                    :class="navOn(0,v,['hover',v.dir==1?'dir':'file'])" 
+                                    @click="NavClick(0,k)"
+                                >
+                                    <span :title="v.title">{{v.title}}</span>
+                                </li>
+                                <li @click="createHandler(0)">add</li>
+                            </ul>
+                        </div>
+                        <div class="floder son" v-show="parent.length > 0 && hover.length > 0">
+                            <ul>
+                                <li
+                                    v-for="(v,k) in son"
+                                    :key="k"
+                                    :class="navOn(1,v,['hover',v.dir==1?'dir':'file'])" 
+                                    @click="NavClick(1,k)"
+                                >
+                                    <span :title="v.title">{{v.title}}</span>
+                                </li>
+                                <li @click="createHandler(1)">add</li>
+                            </ul>
+                        </div>
+                        <div class="floder _floder _son" v-show="pre_son.length > 0">
+                            <ul>
+                                <li v-for="(v,k) in pre_son" :key="k">
+                                    <span :title="v.title">{{v.title}}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <ul class="scrollBtn">
+                            <li class="btn-l" @click="navScroll(1)" v-show="historyl.length > 0">&lt;</li>
+                            <li class="btn-r" @click="navScroll(0)" v-show="historyr.length > 0 && hover.length > 0 && this.hoverr.length > 0">&gt;</li>
+                        </ul>
+                    </div>
                 </div>
                 <div id="mdReader">
                     {{txt}}
@@ -52,9 +91,6 @@
             </div>
         </div>
     </body>
-    <style>
-        
-    </style>
     <script src="./js/highlight.min.js"></script>
     <script src="./js/vue.min.js"></script>
     <script src="./js/marked.js"></script>

@@ -1,0 +1,72 @@
+{
+  "id": "2104298",
+  "name": "mdArea",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "6276592",
+      "name": "文件管理",
+      "font_class": "houtai-",
+      "unicode": "e70f",
+      "unicode_decimal": 59151
+    },
+    {
+      "icon_id": "7442650",
+      "name": "文件管理",
+      "font_class": "wenjianguanli1",
+      "unicode": "e708",
+      "unicode_decimal": 59144
+    },
+    {
+      "icon_id": "8001066",
+      "name": "文件管理",
+      "font_class": "wenjianguanli2",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "13637849",
+      "name": "文件管理",
+      "font_class": "wenjianguanli3",
+      "unicode": "e640",
+      "unicode_decimal": 58944
+    },
+    {
+      "icon_id": "14947114",
+      "name": "文件管理",
+      "font_class": "wenjianguanli4",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "15892145",
+      "name": "文件管理",
+      "font_class": "wenjianguanli5",
+      "unicode": "e6dd",
+      "unicode_decimal": 59101
+    },
+    {
+      "icon_id": "16964171",
+      "name": "文件管理",
+      "font_class": "wenjianguanli6",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "4608954",
+      "name": "文件夹，文件管理",
+      "font_class": "wenjianjiawenjianguanli",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "12585993",
+      "name": "文件管理",
+      "font_class": "wenjianguanli",
+      "unicode": "e625",
+      "unicode_decimal": 58917
+    }
+  ]
+}
